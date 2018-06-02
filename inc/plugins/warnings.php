@@ -1,13 +1,11 @@
 <?php
 
-
 // Disallow direct access to this file for security reasons
 if(!defined("IN_MYBB")) {
     die("Direct initialization of this file is not allowed.");
 }
 
-// link function to file hook // only uncomment if there is a function to link to
-// $plugins->add_hook("hook", "function");
+$plugins->add_hook("postbit", "warnings_postbit");
 
 function warnings_info(){
     return array(
@@ -53,9 +51,22 @@ function warnings_uninstall() {
 }
 
 function warnings_activate() {
-    global $mybb, $templates;    
+    global $mybb, $templates; 
+    include MYBB_ROOT."/inc/adminfunctions_templates.php";
+    find_replace_templatesets("postbit_classic", "#".preg_quote('{$post[\'button_edit\']}')."#i", '{$post[\'warnings\']}{$post[\'button_edit\']}');
 }
 
 function warnings_deactivate() {
-    global $mybb, $templates;    
+    global $mybb, $templates;  
+    include MYBB_ROOT."/inc/adminfunctions_templates.php";
+    find_replace_templatesets("postbit_classic", "#".preg_quote('{$post[\'warnings\']}')."#i", '', 0);
+}
+
+function warnings_postbit(&$post) {
+    global $mybb, $templates;
+    $post['warnings'] = "";
+    if($mybb->usergroup['cancp'] == "1") {
+        $post['warnings'] = eval($templates->render("postbit_warnings"));
+        return $post;
+    }
 }
